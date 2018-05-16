@@ -1,0 +1,338 @@
+import java.util.concurrent.TimeUnit; 
+
+import java.awt.*;
+
+import java.awt.event.*;
+
+import javax.swing.*;
+
+/**
+ * Controller GUI for robotics (hummingbird and finch)
+ */
+
+public class RobotControllerPanel extends JPanel
+
+{
+    private FinchMod finch = new FinchMod();
+    private HumMod hum = new HumMod();
+    
+    //for testing purposes
+    ObjectTest test;
+    
+    boolean moveForward;
+    boolean moveBackward;
+    boolean rotateL;
+    boolean rotateR;
+    boolean shootBall;
+    boolean rotateUp;
+    boolean rotateDown;
+   
+ 
+    
+    //control speed of finch
+    int speed = 255;
+    int timeStep = 500;
+
+
+    private JButton forward;
+    private JButton backwards;
+    private JButton turnL;
+    private JButton turnR;
+    private JButton shoot;
+    private JButton tiltUp;
+    private JButton tiltDown;
+    private JButton stop;
+
+    private JLabel labelForward;
+    private JLabel labelBackwards;
+    private JLabel labelTurnL;
+    private JLabel labelTurnR;
+    private JLabel labelShoot;
+    private JLabel labelStop;
+
+    //----------------------------------------------
+
+    // Constructor: Sets up the GUI.
+
+    //----------------------------------------------
+
+    public RobotControllerPanel()
+
+    { 
+      
+        test = new ObjectTest();
+       
+
+        forward = new JButton("Move Forward"); 
+        backwards = new JButton("Move Backwards");
+        turnL = new JButton("Turn Left");
+        turnR = new JButton("Turn Right");
+        shoot = new JButton("Shoot");
+        tiltUp = new JButton("Tilt Up");
+        tiltDown = new JButton("Tilt Down");
+        stop = new JButton("STOP");
+        
+        
+        forward.addActionListener(new forwardButtonListener()); 
+        backwards.addActionListener(new backwardsButtonListener());
+        stop.addActionListener(new stopButtonListener()); 
+        turnL.addActionListener(new turnLButtonListener()); 
+        turnR.addActionListener(new turnRButtonListener());
+        shoot.addActionListener(new shootButtonListener());
+        tiltUp.addActionListener(new tiltUpButtonListener());
+        tiltDown.addActionListener(new tiltDownButtonListener());
+        
+        labelForward = new JLabel("Forward: " + moveForward); 
+        labelBackwards = new JLabel("Backward: " + moveBackward);
+        labelShoot = new JLabel("Shoot: " + shootBall);
+        labelTurnL = new JLabel("Turn Left: " + rotateL );
+        labelTurnR = new JLabel("Turn Right: " + rotateR );
+        labelStop = new JLabel("Stop: " );
+        
+        add(forward); 
+        //add(labelForward); 
+        
+        add(backwards);
+       // add(labelBackwards);
+        
+        add(shoot);
+        //add(labelShoot);
+        
+        //add(stop);
+        //add(labelStop);
+        
+        add(turnL);
+        //add(labelTurnL);
+        
+        add(turnR);
+        //add(labelTurnR);
+        
+        add(tiltUp);
+        add(tiltDown);
+
+        setPreferredSize(new Dimension(800, 300)); 
+        
+        setBackground(Color.white);
+
+    }
+    
+    public void updateTest()
+    {
+        test.print();
+        
+    }
+    
+    public void updateFinch()
+    {
+        //if moveForward
+        if(moveForward)
+        {
+            finch.setWheelVelocities(speed, speed, timeStep);
+        }
+        else if(moveBackward)
+        {
+            finch.setWheelVelocities(-1*speed, -1*speed, timeStep);
+        }
+        else if(rotateL)
+        {
+            finch.setWheelVelocities(-1*speed, speed, timeStep);
+        }
+        else if(rotateR)
+        {
+            finch.setWheelVelocities(speed, -1*speed, timeStep);
+        }
+
+    }
+    
+    public void tiltHum()
+    {
+        //roate motor
+        //if up positive angle
+        if(rotateUp)
+        {
+            hum.setMotorVelocity(1, 250);
+            pause();
+            hum.setMotorVelocity(1, 0);
+        }
+        
+        if(rotateDown)
+        {
+            hum.setMotorVelocity(1, -250);
+            pause();
+            hum.setMotorVelocity(1, 0);
+        }
+        
+        //if down negative angle
+    }
+    
+     public void fire()
+    {
+        //set servo to fire ball
+        hum.setServoPosition(1, 0); 
+        pause();
+        hum.setServoPosition(1, 180); 
+        pause();
+        hum.setServoPosition(1, 0); 
+    }
+    
+    private void pause()
+    {
+        try {
+            TimeUnit.MILLISECONDS.sleep(500);
+        }
+        catch (InterruptedException e) {
+            //Handle exception
+        }
+    }
+    //***************************************************
+
+    // Represents a listener for button push (action) events
+
+    //***************************************************
+    
+    //Hummingbird controls
+    
+        private class shootButtonListener implements ActionListener
+        
+            {  
+
+        public void actionPerformed(ActionEvent event) 
+        
+        { 
+            fire(); 
+        }
+
+    }
+    
+        private class tiltUpButtonListener implements ActionListener
+        
+            {  
+
+        public void actionPerformed(ActionEvent event) 
+        
+        { 
+            rotateUp = true;
+            rotateDown = false;
+            tiltHum(); 
+        
+        }
+
+    }
+    
+       private class tiltDownButtonListener implements ActionListener
+        
+            {  
+
+        public void actionPerformed(ActionEvent event) 
+        
+        { 
+            rotateUp = false;
+            rotateDown = true;
+            tiltHum(); 
+        
+        }
+
+    }
+    
+    
+        private class forwardButtonListener implements ActionListener
+        
+            {  
+
+        public void actionPerformed(ActionEvent event) 
+        
+        { 
+            
+            moveBackward = false;
+            moveForward = true;
+            rotateL= false;
+            rotateR = false;
+            updateTest();
+            updateFinch();
+        
+            labelForward.setText("Forward: " + moveForward); 
+        
+        }
+
+    }
+    
+      private class backwardsButtonListener implements ActionListener
+        
+        { 
+
+        public void actionPerformed(ActionEvent event) 
+        
+        { 
+           
+            moveBackward = true;
+            moveForward = false;
+            rotateL= false;
+            rotateR = false;
+            updateFinch();
+            labelBackwards.setText("Backwards: " + moveBackward); 
+        
+        }
+
+    }
+    
+      private class stopButtonListener implements ActionListener
+        
+            { 
+
+        public void actionPerformed(ActionEvent event) 
+        
+        { 
+            
+            moveBackward = false;
+            moveForward = false;
+            rotateL= false;
+            rotateR = false;
+            labelBackwards.setText("Backwards: " + moveBackward); 
+            labelForward.setText("Forwards: " + moveForward);
+            test.changeS("Stoped Pressed");
+            updateTest();
+        
+        }
+
+    }
+    
+    private class turnLButtonListener implements ActionListener
+        
+            {  
+
+        public void actionPerformed(ActionEvent event) 
+        
+        { 
+            moveForward = false;
+            moveBackward = false;
+            rotateR = false;
+            rotateL = true;
+            updateFinch();
+            labelTurnL = new JLabel("Turn Left: " + rotateL );
+            labelTurnR = new JLabel("Turn Right: " + rotateR );
+        
+        }
+
+    }
+    
+    private class turnRButtonListener implements ActionListener
+        
+            {  
+
+        public void actionPerformed(ActionEvent event) 
+        
+        { 
+            
+            moveBackward = false;
+            moveForward = false;
+            rotateL= false;
+            rotateR = true;
+            updateFinch();
+            labelTurnL = new JLabel("Turn Left: " + rotateL );
+            labelTurnR = new JLabel("Turn Right: " + rotateR );
+        
+        }
+
+    }
+
+}
